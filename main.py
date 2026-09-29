@@ -15,6 +15,11 @@ CORS(app, origins=['https://iweti.com', 'https://www.iweti.com'])
 DATABASE_URL = os.environ.get('DATABASE_URL')
 GMAIL_USER = os.environ.get('GMAIL_USER')
 GMAIL_APP_PASSWORD = os.environ.get('GMAIL_APP_PASSWORD')
+API_KEY = os.environ.get('API_KEY')
+
+def verificar_api_key():
+    chave_enviada = request.headers.get('X-API-Key')
+    return chave_enviada == API_KEY
 
 
 def get_connection():
@@ -77,6 +82,8 @@ def inscrever():
 
 @app.route('/cancelar-inscricao', methods=['DELETE'])
 def cancelar_inscricao():
+    if not verificar_api_key():
+        return jsonify({'erro': 'Não autorizado'}), 401
     email = request.json.get('email')
     conn = get_connection()
     cur = conn.cursor()
@@ -90,6 +97,8 @@ def cancelar_inscricao():
 @app.route('/enviar-novidade', methods=['POST'])
 def enviar_novidade():
     assunto = request.json.get('assunto')
+    if not verificar_api_key():
+        return jsonify({'erro': 'Não autorizado'}), 401
     corpo = request.json.get('corpo')
 
     conn = get_connection()
