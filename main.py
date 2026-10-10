@@ -15,7 +15,9 @@ CORS(app, origins=['https://iweti.com', 'https://www.iweti.com'])
 DATABASE_URL = os.environ.get('DATABASE_URL')
 GMAIL_USER = os.environ.get('GMAIL_USER')
 GMAIL_APP_PASSWORD = os.environ.get('GMAIL_APP_PASSWORD')
+EMAIL_FROM = os.environ.get('EMAIL_FROM', GMAIL_USER)
 API_KEY = os.environ.get('API_KEY')
+
 
 def verificar_api_key():
     chave_enviada = request.headers.get('X-API-Key')
@@ -43,7 +45,7 @@ def init_db():
 def enviar_email(destinatario, assunto, corpo):
     msg = MIMEText(corpo)
     msg['Subject'] = assunto
-    msg['From'] = GMAIL_USER
+    msg['From'] = EMAIL_FROM
     msg['To'] = destinatario
 
     with smtplib.SMTP('smtp.gmail.com', 587) as servidor:
@@ -84,6 +86,7 @@ def inscrever():
 def cancelar_inscricao():
     if not verificar_api_key():
         return jsonify({'erro': 'Não autorizado'}), 401
+
     email = request.json.get('email')
     conn = get_connection()
     cur = conn.cursor()
@@ -96,9 +99,10 @@ def cancelar_inscricao():
 
 @app.route('/enviar-novidade', methods=['POST'])
 def enviar_novidade():
-    assunto = request.json.get('assunto')
     if not verificar_api_key():
         return jsonify({'erro': 'Não autorizado'}), 401
+
+    assunto = request.json.get('assunto')
     corpo = request.json.get('corpo')
 
     conn = get_connection()
@@ -118,4 +122,4 @@ def enviar_novidade():
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=False, port=5000)
+    app.run(port=5000)
